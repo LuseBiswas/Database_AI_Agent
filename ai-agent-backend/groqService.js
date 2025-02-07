@@ -4,14 +4,13 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 dotenv.config();
-console.log("Environment loaded"); // Log 1
+console.log("Environment loaded");
 
 const groq = new Groq({
   api_key: process.env.GROQ_API_KEY,
 });
-console.log("Groq initialized with API key:", process.env.GROQ_API_KEY ? "Present" : "Missing"); // Log 2
+console.log("Groq initialized with API key:", process.env.GROQ_API_KEY ? "Present" : "Missing");
 
-// PostgreSQL connection pool
 const pool = new Pool({
   user: "postgres",
   host: "localhost",
@@ -19,39 +18,100 @@ const pool = new Pool({
   password: "Ritesh@Biswas69.",
   port: 5433,
 });
-console.log("PostgreSQL pool created"); // Log 3
+console.log("PostgreSQL pool created");
 
-// System prompt for SQL generation
-const systemPrompt = `You are a PostgreSQL query generator. Your task is to convert natural language queries into SQL queries.
-ALWAYS respond with a JSON object in exactly this format:
+const systemPrompt = `You are an advanced PostgreSQL query generator that creates sophisticated SQL queries from natural language. 
+
+ALWAYS respond with a JSON object in this format:
 {
-  "explanation": "Brief explanation of the SQL query",
+  "explanation": "Detailed explanation of what the query does",
   "sqlQuery": "The SQL query to execute",
-  "queryType": "SELECT"
+  "queryType": "SELECT|INSERT|UPDATE|DELETE"
 }
 
-Rules for SQL generation:
-1. Always use SELECT queries unless explicitly asked for modification
-2. Always include LIMIT 1000 for SELECT queries
-3. Use proper table names as provided in the query
-4. Use * only when all columns are explicitly requested
-5. Always use proper SQL syntax with semicolons at the end
+Your capabilities include:
 
-For example, if asked "Show all employees", respond with:
-{
-  "explanation": "Retrieving all records from the employees table",
-  "sqlQuery": "SELECT * FROM employees LIMIT 1000;",
-  "queryType": "SELECT"
-}`;
+1. JOINS and RELATIONSHIPS:
+   - Handle INNER, LEFT, RIGHT, FULL OUTER JOINs
+   - Use proper join conditions with ON clauses
+   - Support multiple table joins
+   Example: "Show employees and their departments" →
+   SELECT e.*, d.department_name 
+   FROM employees e 
+   JOIN departments d ON e.department_id = d.id;
+
+2. AGGREGATIONS:
+   - Support COUNT, SUM, AVG, MAX, MIN
+   - Use GROUP BY with proper HAVING clauses
+   - Handle multiple aggregations
+   Example: "Show total employees per department with average salary" →
+   SELECT d.department_name, COUNT(e.id) as employee_count, AVG(e.salary) as avg_salary 
+   FROM employees e 
+   JOIN departments d ON e.department_id = d.id 
+   GROUP BY d.department_name;
+
+3. SUBQUERIES:
+   - Use subqueries in WHERE, FROM, and SELECT clauses
+   - Handle correlated subqueries
+   Example: "Show employees who earn more than their department average" →
+   SELECT e.* FROM employees e 
+   WHERE salary > (
+     SELECT AVG(salary) FROM employees 
+     WHERE department_id = e.department_id
+   );
+
+4. CONDITIONAL LOGIC:
+   - Use CASE statements for complex conditions
+   - Handle NULLS properly with COALESCE/NULLIF
+   - Support complex WHERE conditions
+   Example: "Show employee status based on salary" →
+   SELECT name, salary,
+     CASE 
+       WHEN salary > 100000 THEN 'High'
+       WHEN salary > 50000 THEN 'Medium'
+       ELSE 'Low'
+     END as salary_category
+   FROM employees;
+
+5. ADVANCED FEATURES:
+   - Window functions (ROW_NUMBER, RANK, etc.)
+   - Common Table Expressions (WITH clauses)
+   - String operations and pattern matching
+   - Date/time functions
+   Example: "Rank employees by salary within each department" →
+   SELECT *, 
+     RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) as salary_rank
+   FROM employees;
+
+Rules:
+1. Always use aliases for table names in joins
+2. Include LIMIT for large result sets (default 1000)
+3. Use parameters ($1, $2) for values when appropriate
+4. Handle NULL values gracefully
+5. Add appropriate indexes hints when relevant
+6. Use explicit column names instead of * when possible
+7. Include ORDER BY for better result presentation
+8. Add appropriate WHERE clauses for filtering
+
+For complex queries, use CTEs for better readability:
+Example: "Show departments with above-average employee count" →
+WITH dept_counts AS (
+  SELECT department_id, COUNT(*) as emp_count
+  FROM employees
+  GROUP BY department_id
+)
+SELECT d.department_name, dc.emp_count
+FROM dept_counts dc
+JOIN departments d ON d.id = dc.department_id
+WHERE dc.emp_count > (SELECT AVG(emp_count) FROM dept_counts);`;
 
 export const queryGroq = async (userQuery) => {
-  console.log("\n--- Starting new query ---"); // Log 4
-  console.log("Received user query:", userQuery); // Log 5
+  console.log("\n--- Starting new query ---");
+  console.log("Received user query:", userQuery);
 
   try {
-    console.log("Preparing to call Groq API..."); // Log 6
+    console.log("Preparing to call Groq API...");
     
-    // Generate the SQL query using Groq
     const chatCompletion = await groq.chat.completions.create({
       messages: [
         {
@@ -71,32 +131,30 @@ export const queryGroq = async (userQuery) => {
       stream: false,
     });
 
-    console.log("Groq API response received"); // Log 7
-    console.log("Raw API response content:", chatCompletion.choices[0]?.message?.content); // Log 8
+    console.log("Groq API response received");
+    console.log("Raw API response content:", chatCompletion.choices[0]?.message?.content);
 
     let response;
     try {
       const responseContent = chatCompletion.choices[0]?.message?.content;
-      console.log("\nAttempting to parse response into JSON:"); // Log 9
+      console.log("\nAttempting to parse response into JSON:");
       response = JSON.parse(responseContent);
-      console.log("Successfully parsed JSON:", JSON.stringify(response, null, 2)); // Log 10
+      console.log("Successfully parsed JSON:", JSON.stringify(response, null, 2));
     } catch (parseError) {
-      console.error("JSON Parse Error:", parseError); // Log 11
-      console.error("Failed content:", chatCompletion.choices[0]?.message?.content); // Log 12
+      console.error("JSON Parse Error:", parseError);
+      console.error("Failed content:", chatCompletion.choices[0]?.message?.content);
       throw new Error("Failed to parse AI response into valid JSON");
     }
 
-    // Validate the response structure
     if (!response.sqlQuery) {
-      console.error("Invalid response structure - missing sqlQuery"); // Log 13
+      console.error("Invalid response structure - missing sqlQuery");
       throw new Error("No SQL query generated");
     }
 
-    console.log("\nPreparing to execute SQL query:", response.sqlQuery); // Log 14
+    console.log("\nPreparing to execute SQL query:", response.sqlQuery);
 
-    // Execute the SQL query
     const result = await executeQuery(response.sqlQuery);
-    console.log("Query execution completed. Row count:", result.rowCount); // Log 15
+    console.log("Query execution completed. Row count:", result.rowCount);
 
     return {
       explanation: response.explanation,
@@ -106,34 +164,33 @@ export const queryGroq = async (userQuery) => {
     };
 
   } catch (error) {
-    console.error("\n=== Error Details ==="); // Log 16
-    console.error("Error type:", error.constructor.name); // Log 17
-    console.error("Error message:", error.message); // Log 18
-    console.error("Error stack:", error.stack); // Log 19
-    console.error("=================="); // Log 20
+    console.error("\n=== Error Details ===");
+    console.error("Error type:", error.constructor.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    console.error("==================");
     throw new Error(`Failed to process query: ${error.message}`);
   }
 };
 
-// Function to execute SQL queries safely
 async function executeQuery(sqlQuery) {
-  console.log("\n--- Executing SQL Query ---"); // Log 21
+  console.log("\n--- Executing SQL Query ---");
   const client = await pool.connect();
-  console.log("Database connection established"); // Log 22
+  console.log("Database connection established");
   
   try {
-    console.log("Executing query:", sqlQuery); // Log 23
+    console.log("Executing query:", sqlQuery);
     const result = await client.query(sqlQuery);
-    console.log("Query executed successfully"); // Log 24
+    console.log("Query executed successfully");
     return {
       rowCount: result.rowCount,
       rows: result.rows
     };
   } catch (dbError) {
-    console.error("Database Error:", dbError); // Log 25
+    console.error("Database Error:", dbError);
     throw dbError;
   } finally {
-    console.log("Releasing database connection"); // Log 26
+    console.log("Releasing database connection");
     client.release();
   }
 }
