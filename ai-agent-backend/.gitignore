@@ -1,0 +1,112 @@
+# Compiled source code
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.out
+*.app
+
+# Temporary files created by editors and tools
+*~
+.#*
+*.swp
+*.tmp
+*.bak
+*.lock
+*.DS_Store  # macOS Finder store
+.Thumbs.db  # Windows Explorer thumbnail cache
+
+# Logs and debug files
+*.log
+*.trace
+*.dump
+
+# Package managers
+.npmrc
+yarn.lock
+package-lock.json
+composer.lock
+
+# Virtual environment and dependency folders
+.venv/
+venv/
+env/
+node_modules/
+vendor/
+__pycache__/
+
+# IDE specific files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS specific files
+.cache/
+.local/share/Trash/
+
+# Sensitive information - NEVER commit these!
+.env
+config.ini
+secrets.json
+*.key
+*.pem
+*.pfx
+
+# Large files (consider using Git LFS for these instead)
+*.psd
+*.ai
+*.zip
+*.rar
+*.7z
+*.gz
+*.tar
+*.dmg
+*.iso
+
+# Build artifacts
+build/
+dist/
+target/
+
+# Testing related
+*.test
+*.spec
+
+# Miscellaneous
+.gitignore  # Ignore this file itself (usually not needed, but good practice)
+.gitattributes
+.gitkeep # Empty file to track directory
+
+# Example for specific language/framework - Python
+*.pyc
+*.egg
+*.dist-info
+
+# Example for specific language/framework - Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Example for specific language/framework - JavaScript
+.cache
+.nyc_output
+.parcel-cache
+
+# Example for specific language/framework - Go
+*.test
+_test/
+
+# Example for specific language/framework - C#
+*.csproj.user
+*.sln.user
+*.suo
+*.user
+*.cache
+obj/
+bin/
+
+# Add more as needed based on your project
