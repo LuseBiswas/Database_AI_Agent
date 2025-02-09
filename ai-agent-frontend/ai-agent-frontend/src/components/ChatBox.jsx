@@ -1,12 +1,28 @@
 import React, { useState } from "react";
-import { queryBackend } from "../api/queryAPI";
+import { useNavigate } from "react-router-dom";
+import { queryBackend, disconnectDatabase } from "../api/queryAPI";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import { useTheme } from "./ThemeProvider";
+import { Sun, Moon, LogOut, Send, Database } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
+import { Alert, AlertDescription } from "./ui/alert";
 
 const ChatBox = () => {
   const [userQuery, setUserQuery] = useState("");
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,108 +36,170 @@ const ChatBox = () => {
       const result = await queryBackend(userQuery);
       setResponse(result);
     } catch (error) {
-      setError("Failed to fetch response.");
+      setError(error.message || "Failed to fetch response.");
       console.error("Error:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleDisconnect = async () => {
+    try {
+      await disconnectDatabase();
+      navigate("/"); // Navigate back to connection page
+    } catch (error) {
+      setError("Failed to disconnect from database.");
+      console.error("Disconnect error:", error);
+    }
+  };
+
   const renderTable = (data) => {
     if (!data || !data.rows || data.rows.length === 0) {
-      return <p>No data found</p>;
+      return (
+        <Alert>
+          <AlertDescription>No data found</AlertDescription>
+        </Alert>
+      );
     }
 
     const columns = Object.keys(data.rows[0]);
 
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
               {columns.map((column) => (
-                <th key={column} className="border p-2 text-left bg-gray-100">
-                  {column}
-                </th>
+                <TableHead key={column}>{column}</TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {data.rows.map((row, index) => (
-              <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+              <TableRow key={index}>
                 {columns.map((column) => (
-                  <td key={column} className="border p-2">
+                  <TableCell key={column}>
                     {row[column]?.toString() || ''}
-                  </td>
+                  </TableCell>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     );
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">AI Agent Chat</h1>
-      
-      <form onSubmit={handleSubmit} className="mb-4">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Ask a question about your data..."
-            value={userQuery}
-            onChange={(e) => setUserQuery(e.target.value)}
-            className="flex-1 p-2 border rounded"
-            required
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400"
-          >
-            {loading ? "Processing..." : "Submit"}
-          </button>
+    <div className="min-h-screen p-6 bg-background">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <Database className="h-6 w-6" />
+            <h1 className="text-2xl font-bold text-foreground">AI Database Assistant</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDisconnect}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Disconnect
+            </Button>
+          </div>
         </div>
-      </form>
+        
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Query Your Database</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="Ask a question about your data..."
+                value={userQuery}
+                onChange={(e) => setUserQuery(e.target.value)}
+                className="flex-1"
+                required
+              />
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Processing...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Send className="h-4 w-4" />
+                    Submit
+                  </span>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
-      {error && (
-        <div className="text-red-500 mb-4">
-          {error}
-        </div>
-      )}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      {response && (
-        <div className="space-y-4">
-          {response.explanation && (
-            <div className="bg-gray-50 p-4 rounded">
-              <h2 className="font-bold mb-2">Explanation:</h2>
-              <p>{response.explanation}</p>
-            </div>
-          )}
-          
-          {response.sqlQuery && (
-            <div className="bg-gray-50 p-4 rounded">
-              <h2 className="font-bold mb-2">SQL Query:</h2>
-              <pre className="bg-gray-100 p-2 rounded overflow-x-auto">
-                {response.sqlQuery}
-              </pre>
-            </div>
-          )}
+        {response && (
+          <div className="space-y-6">
+            {response.explanation && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Explanation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-foreground">{response.explanation}</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {response.sqlQuery && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>SQL Query</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                    {response.sqlQuery}
+                  </pre>
+                </CardContent>
+              </Card>
+            )}
 
-          {response.result && (
-            <div>
-              <h2 className="font-bold mb-2">Results:</h2>
-              {renderTable(response.result)}
-              <p className="mt-2 text-gray-600">
-                Total rows: {response.result.rowCount || 0}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-      <Button>Click me</Button>
+            {response.result && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Results</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderTable(response.result)}
+                  <p className="mt-4 text-sm text-muted-foreground">
+                    Total rows: {response.result.rowCount || 0}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

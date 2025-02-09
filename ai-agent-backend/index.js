@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { queryGroq, initializeDatabase } from "./groqService.js";
+import { queryGroq, initializeDatabase, disconnectDatabase } from "./groqService.js";
 
 const app = express();
 app.use(cors());

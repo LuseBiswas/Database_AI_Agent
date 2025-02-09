@@ -11,6 +11,7 @@ import { Input } from './components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './components/ui/card';
 import { Label } from './components/ui/label';
 import { checkHealth, connectToDatabase } from './api/queryAPI';
+import { useNavigate } from 'react-router-dom';
 
 
 const DatabaseApp = () => {
@@ -25,6 +26,7 @@ const DatabaseApp = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
 
   // Check initial connection status
   useEffect(() => {
@@ -51,6 +53,7 @@ const DatabaseApp = () => {
       
       if (result.success) {
         setIsConnected(true);
+        navigate('/chat');
       } else {
         setError(result.message || 'Failed to connect to database');
       }
