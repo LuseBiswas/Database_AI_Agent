@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { queryBackend } from "../api/queryAPI";
+import { Button } from "./ui/button";
 
 const ChatBox = () => {
   const [userQuery, setUserQuery] = useState("");
@@ -120,6 +121,7 @@ const ChatBox = () => {
           )}
         </div>
       )}
+      <Button>Click me</Button>
     </div>
   );
 };
