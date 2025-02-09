@@ -9,15 +9,52 @@ const groq = new Groq({
   api_key: process.env.GROQ_API_KEY,
 });
 
-const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "persondb",
-  password: process.env.DB_PASSWORD,
-  port: 5433,
-});
+let pool = null;
+
+// New function to initialize database connection
+export const initializeDatabase = async (connectionConfig) => {
+  try {
+    // Close existing pool if it exists
+    if (pool) {
+      await pool.end();
+    }
+
+    // Create new pool with provided config
+    pool = new Pool({
+      user: connectionConfig.user,
+      host: connectionConfig.host,
+      database: connectionConfig.database,
+      password: connectionConfig.password,
+      port: parseInt(connectionConfig.port),
+    });
+
+    // Test the connection
+    const client = await pool.connect();
+    await client.query('SELECT NOW()');
+    client.release();
+
+    return { success: true };
+  } catch (error) {
+    console.error("Database connection error:", error);
+    return { 
+      success: false, 
+      message: error.message 
+    };
+  }
+};
+
+// const pool = new Pool({
+//   user: "postgres",
+//   host: "localhost",
+//   database: "persondb",
+//   password: process.env.DB_PASSWORD,
+//   port: 5433,
+// });
 
 async function getTableSchema(tableName) {
+  if (!pool) {
+    throw new Error("Database not connected");
+  }
   const query = `
     SELECT 
       column_name,
@@ -34,6 +71,9 @@ async function getTableSchema(tableName) {
 }
 
 async function getAllTableNames() {
+  if (!pool) {
+    throw new Error("Database not connected");
+  }
   const query = `
     SELECT table_name
     FROM information_schema.tables
@@ -170,6 +210,9 @@ export const queryGroq = async (userQuery) => {
 };
 
 async function executeQuery(sqlQuery) {
+  if (!pool) {
+    throw new Error("Database not connected");
+  }
   const client = await pool.connect();
   try {
     const result = await client.query(sqlQuery);
@@ -184,3 +227,12 @@ async function executeQuery(sqlQuery) {
     client.release();
   }
 }
+
+export const disconnectDatabase = async () => {
+  if (pool) {
+    await pool.end();
+    pool = null;
+    return { success: true };
+  }
+  return { success: false, message: "No active connection" };
+};
