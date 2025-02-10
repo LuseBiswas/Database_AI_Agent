@@ -6,7 +6,7 @@ import { Input } from "./ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { useTheme } from "./ThemeProvider";
-import { Sun, Moon, LogOut, Send, Database } from "lucide-react";
+import { Sun, Moon, LogOut, Send, Database,BarChart, ListOrdered, Calculator, TrendingUp,Boxes } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -18,6 +18,14 @@ import {
 import { Alert, AlertDescription } from "./ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
 import ChartRenderer from "./ChartRenderer";
+
+const QUICK_QUERY_TAGS = [
+  { label: "Create Bar Graph", query: "Create a bar graph showing",icon: <BarChart className="h-4 w-4 text-blue-500" /> },
+  { label: "Top 10 Records", query: "Show top 10 records from",icon: <ListOrdered className="h-4 w-4 text-green-500" /> },
+  { label: "Average Calculation", query: "Calculate average of", icon: <Calculator className="h-4 w-4 text-purple-500" /> },
+  { label: "Group By Analysis", query: "Group by and count",icon: <Boxes className="h-4 w-4 text-orange-500" /> },
+  { label: "Recent Trends", query: "Show recent trends in", icon: <TrendingUp className="h-4 w-4 text-red-500" /> }
+];
 
 const TableSkeleton = () => (
   <div className="rounded-md border">
@@ -114,6 +122,9 @@ const ChatBox = () => {
       setLoading(false);
     }
   };
+  const handleQuickQueryTag = (query) => {
+    setUserQuery(query);
+  };
 
   const handleDisconnect = async () => {
     try {
@@ -198,7 +209,7 @@ const ChatBox = () => {
           <div className="flex items-center gap-2">
             <Database className="h-6 w-6" />
             <h1 className="text-2xl font-bold text-foreground">
-              AI Database Assistant
+              AI-DA
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -234,7 +245,8 @@ const ChatBox = () => {
               <CardTitle>Query Your Database</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="flex gap-2">
+              <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex gap-2">
                 <Input
                   type="text"
                   placeholder="Ask a question about your data..."
@@ -256,6 +268,22 @@ const ChatBox = () => {
                     </span>
                   )}
                 </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_QUERY_TAGS.map((tag) => (
+                    <Button
+                      key={tag.label}
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      onClick={() => handleQuickQueryTag(tag.query)}
+                      className="text-xs"
+                    >
+                      {tag.icon}
+                      {tag.label}
+                    </Button>
+                  ))}
+                </div>
               </form>
             </CardContent>
           </Card>
