@@ -27,8 +27,7 @@ app.post("/api/connect", async (req, res) => {
       port,
       database,
       user,
-      password,
-      ssl: false,
+      password
     });
 
     if (result.success) {
