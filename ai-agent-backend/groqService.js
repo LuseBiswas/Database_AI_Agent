@@ -26,6 +26,10 @@ export const initializeDatabase = async (connectionConfig) => {
       database: connectionConfig.database,
       password: connectionConfig.password,
       port: parseInt(connectionConfig.port),
+      ssl: {
+        rejectUnauthorized: true,
+        sslmode: 'require'
+      }
     });
 
     // Test the connection
