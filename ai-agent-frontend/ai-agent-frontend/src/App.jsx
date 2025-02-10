@@ -2,8 +2,8 @@ import React from "react";
 import ChatBox from "./components/ChatBox";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from "./components/ThemeProvider";
-import DatabaseApp from "./DatabaseApp";
 import Homepage from "./Homepage";
+import PostgresDatabaseApp from "./components/databaseUI/PostgresDatabaseApp";
 
 const App = () => {
   return (
@@ -11,8 +11,8 @@ const App = () => {
       <Router>
         <Routes>
         <Route path="/" element={<Homepage />} />
-          <Route path="/postgres" element={<DatabaseApp />} />
-          <Route path="/chat" element={<ChatBox />} />
+          <Route path="/postgres" element={<PostgresDatabaseApp />} />
+          <Route path="/chatPostgres" element={<ChatBox />} />
         </Routes>
       </Router>
     </ThemeProvider>

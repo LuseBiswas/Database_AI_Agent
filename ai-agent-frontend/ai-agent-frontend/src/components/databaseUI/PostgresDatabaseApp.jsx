@@ -3,18 +3,18 @@ import React, { useEffect, useState } from 'react';
 // import { Input } from "./ui/input";
 // import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./ui/card";
 // import { Label } from "./ui/label";
-import { useTheme } from './components/ThemeProvider';
+import { useTheme } from '../ThemeProvider';
 import { Sun, Moon, Database } from 'lucide-react';
-import ChatBox from './components/ChatBox';
-import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './components/ui/card';
-import { Label } from './components/ui/label';
-import { checkHealth, connectToDatabase } from './api/queryAPI';
+import ChatBox from '../ChatBox';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
+import { Label } from '../ui/label';
+import { checkHealth, connectToDatabase } from '../../api/queryAPI';
 import { useNavigate } from 'react-router-dom';
 
 
-const DatabaseApp = () => {
+const PostgresDatabaseApp = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [formData, setFormData] = useState({
     host: '',
@@ -53,7 +53,7 @@ const DatabaseApp = () => {
       
       if (result.success) {
         setIsConnected(true);
-        navigate('/chat');
+        navigate('/chatPostgres');
       } else {
         setError(result.message || 'Failed to connect to database');
       }
@@ -191,4 +191,4 @@ const DatabaseApp = () => {
   );
 };
 
-export default DatabaseApp;
+export default PostgresDatabaseApp;
