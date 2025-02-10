@@ -28,7 +28,7 @@ app.post("/api/connect", async (req, res) => {
       database,
       user,
       password,
-      ssl: { rejectUnauthorized: false }
+      ssl: false,
     });
 
     if (result.success) {
