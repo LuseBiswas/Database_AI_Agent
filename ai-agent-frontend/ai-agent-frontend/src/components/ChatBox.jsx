@@ -4,6 +4,7 @@ import { queryBackend, disconnectDatabase } from "../api/queryAPI";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import { Skeleton } from "./ui/skeleton";
 import { useTheme } from "./ThemeProvider";
 import { Sun, Moon, LogOut, Send, Database } from "lucide-react";
 import {
@@ -16,6 +17,71 @@ import {
 } from "./ui/table";
 import { Alert, AlertDescription } from "./ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
+
+const TableSkeleton = () => (
+  <div className="rounded-md border">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {[1, 2, 3, 4].map((i) => (
+            <TableCell key={i}>
+              <Skeleton className="h-4 w-24" />
+            </TableCell>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {[1, 2, 3, 4].map((row) => (
+          <TableRow key={row}>
+            {[1, 2, 3, 4].map((cell) => (
+              <TableCell key={cell}>
+                <Skeleton className="h-4 w-full" />
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </div>
+);
+
+const LoadingContent = () => (
+  <div className="space-y-6">
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <Skeleton className="h-6 w-32" />
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-4 w-3/4" />
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <Skeleton className="h-6 w-24" />
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-20 w-full rounded-lg" />
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <Skeleton className="h-6 w-20" />
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <TableSkeleton />
+      </CardContent>
+    </Card>
+  </div>
+);
 
 const ChatBox = () => {
   const [userQuery, setUserQuery] = useState("");
@@ -206,74 +272,78 @@ const ChatBox = () => {
             </motion.div>
           )}
 
-          {response && (
-            <motion.div 
-              className="space-y-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              {response.explanation && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.1 }}
-                >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Explanation</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-foreground">{response.explanation}</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-              
-              {response.sqlQuery && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.2 }}
-                >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>SQL Query</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
-                        {response.sqlQuery}
-                      </pre>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
+          {loading ? (
+            <LoadingContent />
+          ) : (
+            response && (
+              <motion.div 
+                className="space-y-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {response.explanation && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Explanation</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-foreground">{response.explanation}</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+                
+                {response.sqlQuery && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>SQL Query</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
+                          {response.sqlQuery}
+                        </pre>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
 
-              {response.result && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.3 }}
-                >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Results</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {renderTable(response.result)}
-                      <motion.p 
-                        className="mt-4 text-sm text-muted-foreground"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3, delay: 0.4 }}
-                      >
-                        Total rows: {response.result.rowCount || 0}
-                      </motion.p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-            </motion.div>
+                {response.result && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.3 }}
+                  >
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Results</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {renderTable(response.result)}
+                        <motion.p 
+                          className="mt-4 text-sm text-muted-foreground"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.3, delay: 0.4 }}
+                        >
+                          Total rows: {response.result.rowCount || 0}
+                        </motion.p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </motion.div>
+            )
           )}
         </AnimatePresence>
       </div>
