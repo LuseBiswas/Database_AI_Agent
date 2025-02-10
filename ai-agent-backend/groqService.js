@@ -124,6 +124,19 @@ Return ONLY a JSON object in this format, with no markdown formatting or code bl
   "sqlQuery": "The SQL query to execute",
   "queryType": "SELECT|INSERT|UPDATE|DELETE"
 }
+  CHART GENERATION SPECIFIC RULES:
+- For PIE CHARTS: 
+  1. Must have exactly two columns
+  2. First column MUST be categorical (labels)
+  3. Second column MUST be numerical (values)
+  4. Ensure data is aggregated (use COUNT, SUM, etc.)
+  5. Include 'count' or 'total' in column name for pie charts
+
+Example Good Pie Chart Query:
+- SELECT department, COUNT(employee_id) as employee_count FROM employees GROUP BY department
+- SELECT product_category, SUM(sales) as total_sales FROM sales GROUP BY product_category
+
+If pie chart conditions are not met, do NOT include chartType.
 
 IMPORTANT: Use ONLY the exact table and column names provided in the schema below. Do not use generic names or aliases unless specifically requested.
 
@@ -146,9 +159,24 @@ export const queryGroq = async (userQuery) => {
     console.log("Fetching database schema...");
     const schema = await getDatabaseSchema();
     const schemaPrompt = generateSchemaPrompt(schema);
+
+    const chartSupportPrompt = `
+    CHART GENERATION INSTRUCTIONS:
+    - If query suggests visualization, include 'chartType'
+    - Supported chart types: 'pie', 'bar', 'line'
+    - For pie charts: Select categorical column for labels, numerical for values
+    - For bar/line charts: Choose appropriate X and Y axes
+    - If unclear how to chart, omit 'chartType'
+    
+    Examples of chart-triggering phrases:
+    - "show as pie chart"
+    - "graph of..."
+    - "visualize..."
+    - "breakdown by..."
+`;
     
     // Combine base prompt with schema information
-    const fullSystemPrompt = baseSystemPrompt + "\n" + schemaPrompt;
+    const fullSystemPrompt = baseSystemPrompt + "\n" + schemaPrompt + "\n" + chartSupportPrompt;
     
     console.log("Preparing to call Groq API with schema-aware prompt");
     
@@ -201,6 +229,7 @@ export const queryGroq = async (userQuery) => {
       explanation: response.explanation,
       sqlQuery: response.sqlQuery,
       queryType: response.queryType,
+      chartType: response.chartType || null,
       result: result
     };
 

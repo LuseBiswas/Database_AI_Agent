@@ -1,6 +1,7 @@
 import axios from "axios";
 
-// const API_BASE_URL = "http://localhost:3000/api"; This is for local development 
+// const API_BASE_URL = "http://localhost:3000/api"; 
+// This is for local development 
 
 const API_BASE_URL = "https://database-ai-agent-backend.onrender.com/api";
 

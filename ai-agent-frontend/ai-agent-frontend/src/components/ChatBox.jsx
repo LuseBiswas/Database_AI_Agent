@@ -17,6 +17,7 @@ import {
 } from "./ui/table";
 import { Alert, AlertDescription } from "./ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
+import ChartRenderer from "./ChartRenderer";
 
 const TableSkeleton = () => (
   <div className="rounded-md border">
@@ -98,11 +99,11 @@ const ChatBox = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userQuery.trim()) return;
-    
+
     setLoading(true);
     setError("");
     setResponse(null);
-    
+
     try {
       const result = await queryBackend(userQuery);
       setResponse(result);
@@ -142,7 +143,7 @@ const ChatBox = () => {
     const columns = Object.keys(data.rows[0]);
 
     return (
-      <motion.div 
+      <motion.div
         className="rounded-md border"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -174,7 +175,7 @@ const ChatBox = () => {
               >
                 {columns.map((column) => (
                   <TableCell key={column}>
-                    {row[column]?.toString() || ''}
+                    {row[column]?.toString() || ""}
                   </TableCell>
                 ))}
               </motion.tr>
@@ -188,7 +189,7 @@ const ChatBox = () => {
   return (
     <div className="min-h-screen p-6 bg-background">
       <div className="max-w-6xl mx-auto">
-        <motion.div 
+        <motion.div
           className="flex justify-between items-center mb-6"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -196,15 +197,17 @@ const ChatBox = () => {
         >
           <div className="flex items-center gap-2">
             <Database className="h-6 w-6" />
-            <h1 className="text-2xl font-bold text-foreground">AI Database Assistant</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              AI Database Assistant
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             >
-              {theme === 'dark' ? (
+              {theme === "dark" ? (
                 <Sun className="h-5 w-5" />
               ) : (
                 <Moon className="h-5 w-5" />
@@ -220,7 +223,7 @@ const ChatBox = () => {
             </Button>
           </div>
         </motion.div>
-        
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -276,7 +279,7 @@ const ChatBox = () => {
             <LoadingContent />
           ) : (
             response && (
-              <motion.div 
+              <motion.div
                 className="space-y-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -293,12 +296,14 @@ const ChatBox = () => {
                         <CardTitle>Explanation</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-foreground">{response.explanation}</p>
+                        <p className="text-foreground">
+                          {response.explanation}
+                        </p>
                       </CardContent>
                     </Card>
                   </motion.div>
                 )}
-                
+
                 {response.sqlQuery && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -330,7 +335,7 @@ const ChatBox = () => {
                       </CardHeader>
                       <CardContent>
                         {renderTable(response.result)}
-                        <motion.p 
+                        <motion.p
                           className="mt-4 text-sm text-muted-foreground"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
@@ -341,6 +346,12 @@ const ChatBox = () => {
                       </CardContent>
                     </Card>
                   </motion.div>
+                )}
+                {response.chartType && response.result && (
+                  <ChartRenderer
+                    data={response.result}
+                    chartType={response.chartType}
+                  />
                 )}
               </motion.div>
             )
