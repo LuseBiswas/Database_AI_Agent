@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from './components/ThemeProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sun, Moon, Database, MessageSquare, Shield, Zap, ArrowRight } from 'lucide-react';
+import { Sun, Moon, Database, MessageSquare, Shield, Zap, ArrowRight,BarChart, Layers, AreaChart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Homepage = () => {
@@ -229,6 +229,76 @@ const Homepage = () => {
                     </Button>
                   </div>
                 </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* New Features Section */}
+      <div className="py-24 bg-muted/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl font-bold mb-4">Powerful Features</h2>
+            <p className="text-lg text-muted-foreground">Advanced tools to help you understand your data better</p>
+          </motion.div>
+
+          <motion.div
+            className="grid md:grid-cols-3 gap-8"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, staggerChildren: 0.2 }}
+          >
+            <motion.div
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card className="h-full">
+                <CardHeader>
+                  <BarChart className="h-12 w-12 text-primary mb-4" />
+                  <CardTitle>Data Visualization</CardTitle>
+                  <CardDescription>Transform your data into intuitive charts and graphs for better insights</CardDescription>
+                </CardHeader>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="relative overflow-hidden"
+            >
+              <div className="absolute top-2 right-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                Coming Soon
+              </div>
+              <Card className="h-full opacity-75">
+                <CardHeader>
+                  <Layers className="h-12 w-12 text-primary mb-4" />
+                  <CardTitle>Data Export</CardTitle>
+                  <CardDescription>Effortlessly save your data in CSV format for analysis and sharing.</CardDescription>
+                </CardHeader>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="relative overflow-hidden"
+            >
+              <div className="absolute top-2 right-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                Coming Soon
+              </div>
+              <Card className="h-full opacity-75">
+                <CardHeader>
+                  <AreaChart className="h-12 w-12 text-primary mb-4" />
+                  <CardTitle>Trend Analysis</CardTitle>
+                  <CardDescription>Identify patterns and trends in your data with AI-powered analytics</CardDescription>
+                </CardHeader>
               </Card>
             </motion.div>
           </motion.div>
