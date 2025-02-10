@@ -28,6 +28,11 @@ const PostgresDatabaseApp = () => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
+  useEffect(()=>{
+    document.title = "Connection"
+
+  },[])
+
   // Check initial connection status
   useEffect(() => {
     const checkConnection = async () => {

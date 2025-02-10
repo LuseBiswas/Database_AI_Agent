@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { queryBackend, disconnectDatabase } from "../api/queryAPI";
 import { Button } from "./ui/button";
@@ -23,6 +23,11 @@ const ChatBox = () => {
   const [error, setError] = useState("");
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+
+  useEffect(()=>{
+      document.title = "Chat"
+  
+    },[])
 
   const handleSubmit = async (e) => {
     e.preventDefault();

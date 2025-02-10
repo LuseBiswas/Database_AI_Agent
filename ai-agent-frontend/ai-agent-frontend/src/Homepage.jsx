@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from './components/ThemeProvider';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,11 @@ import { Sun, Moon, Database } from 'lucide-react';
 const Homepage = () => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+
+  useEffect(()=>{
+        document.title = "Homepage"
+    
+      },[])
 
   return (
     <div className="min-h-screen p-8 bg-background">
