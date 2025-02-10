@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from './components/ThemeProvider';
 import { Button } from '@/components/ui/button';
@@ -9,33 +9,22 @@ import { motion } from 'framer-motion';
 const Homepage = () => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const databaseSectionRef = useRef(null);
 
   useEffect(() => {
     document.title = "AI Database Assistant - Chat with Your Database";
   }, []);
 
-  const fadeIn = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
-  };
-
-  const staggerChildren = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+  const scrollToDatabase = () => {
+    databaseSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="relative">
-        {/* Gradient background with lower z-index */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-background -z-10" />
         
-        {/* Content with higher z-index */}
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
           <motion.div 
             className="flex justify-between items-center mb-8"
@@ -43,7 +32,7 @@ const Homepage = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-3xl font-bold text-foreground">AI Database Assistant</h1>
+            <h1 className="text-3xl font-bold text-foreground">AI-DA</h1>
             <Button
               variant="ghost"
               size="icon"
@@ -73,7 +62,7 @@ const Homepage = () => {
               <Button 
                 size="lg" 
                 className="group relative"
-                onClick={() => navigate('/get-started')}
+                onClick={scrollToDatabase}
               >
                 Get Started 
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -88,10 +77,10 @@ const Homepage = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             className="grid md:grid-cols-3 gap-8"
-            variants={staggerChildren}
-            initial="initial"
-            whileInView="animate"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
             {[
               {
@@ -112,7 +101,6 @@ const Homepage = () => {
             ].map((feature, index) => (
               <motion.div
                 key={index}
-                variants={fadeIn}
                 whileHover={{ y: -8 }}
                 transition={{ duration: 0.2 }}
               >
@@ -130,7 +118,7 @@ const Homepage = () => {
       </div>
 
       {/* Database Options */}
-      <div className="py-24">
+      <div className="py-24" ref={databaseSectionRef}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
             className="text-3xl font-bold text-center mb-16"
@@ -143,18 +131,18 @@ const Homepage = () => {
           
           <motion.div 
             className="grid md:grid-cols-2 gap-8"
-            variants={staggerChildren}
-            initial="initial"
-            whileInView="animate"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
             {/* PostgreSQL Card */}
             <motion.div
-              variants={fadeIn}
               whileHover={{ y: -8 }}
               transition={{ duration: 0.2 }}
             >
               <Card>
+                {/* PostgreSQL Card content remains the same */}
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Database className="h-6 w-6 text-primary" />
@@ -197,11 +185,11 @@ const Homepage = () => {
 
             {/* MongoDB Card */}
             <motion.div
-              variants={fadeIn}
               whileHover={{ y: -8 }}
               transition={{ duration: 0.2 }}
             >
               <Card className="relative overflow-hidden">
+                {/* MongoDB Card content remains the same */}
                 <div className="absolute top-2 right-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
                   Coming Soon
                 </div>
