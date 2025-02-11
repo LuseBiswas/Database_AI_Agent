@@ -1,37 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 // import { Button } from "./ui/button";
 // import { Input } from "./ui/input";
 // import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./ui/card";
 // import { Label } from "./ui/label";
-import { useTheme } from '../ThemeProvider';
-import { Sun, Moon, Database } from 'lucide-react';
-import ChatBox from '../ChatBox';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
-import { Label } from '../ui/label';
-import { checkHealth, connectToDatabase } from '../../api/queryAPI';
-import { useNavigate } from 'react-router-dom';
-
+import { useTheme } from "../ThemeProvider";
+import { Sun, Moon, Database, ArrowLeft } from "lucide-react";
+import ChatBox from "../ChatBox";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Label } from "../ui/label";
+import { checkHealth, connectToDatabase } from "../../api/queryAPI";
+import { useNavigate } from "react-router-dom";
 
 const PostgresDatabaseApp = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [formData, setFormData] = useState({
-    host: '',
-    port: '',
-    database: '',
-    user: '',
-    password: ''
+    host: "",
+    port: "",
+    database: "",
+    user: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
-  useEffect(()=>{
-    document.title = "Connection"
-
-  },[])
+  useEffect(() => {
+    document.title = "Connection";
+  }, []);
 
   // Check initial connection status
   useEffect(() => {
@@ -40,30 +45,32 @@ const PostgresDatabaseApp = () => {
         const health = await checkHealth();
         setIsConnected(health.databaseConnected);
       } catch (err) {
-        console.error('Health check failed:', err);
+        console.error("Health check failed:", err);
       }
     };
-    
+
     checkConnection();
   }, []);
-
 
   const handleConnect = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       const result = await connectToDatabase(formData);
-      
+
       if (result.success) {
         setIsConnected(true);
-        navigate('/chatPostgres');
+        navigate("/chatPostgres");
       } else {
-        setError(result.message || 'Failed to connect to database');
+        setError(result.message || "Failed to connect to database");
       }
     } catch (err) {
-      setError(err.message || 'Failed to connect to database. Please check your credentials.');
+      setError(
+        err.message ||
+          "Failed to connect to database. Please check your credentials."
+      );
     } finally {
       setLoading(false);
     }
@@ -72,7 +79,7 @@ const PostgresDatabaseApp = () => {
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -82,16 +89,22 @@ const PostgresDatabaseApp = () => {
 
   return (
     <div className="min-h-screen p-8 bg-background">
-        
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Database Connection</h1>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
+              Database Connection
+            </h1>
+          </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
-            {theme === 'dark' ? (
+            {theme === "dark" ? (
               <Sun className="h-5 w-5" />
             ) : (
               <Moon className="h-5 w-5" />
@@ -169,23 +182,17 @@ const PostgresDatabaseApp = () => {
                   required
                 />
               </div>
-              {error && (
-                <p className="text-red-500 text-sm">{error}</p>
-              )}
+              {error && <p className="text-red-500 text-sm">{error}</p>}
             </CardContent>
             <CardFooter>
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                     Connecting...
                   </span>
                 ) : (
-                  'Connect'
+                  "Connect"
                 )}
               </Button>
             </CardFooter>
