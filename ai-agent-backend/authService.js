@@ -4,13 +4,20 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Access environment variables
+const DB_USER = process.env.DB_USER;
+const DB_HOST = process.env.DB_HOST;
+const DB_NAME = process.env.DB_NAME;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_PORT = process.env.DB_PORT || 5432; 
+
 // Create a separate pool for user data
 const userPool = new Pool({
-    user: "neondb_owner",
-    host: "ep-sparkling-cake-a8vnoyyd-pooler.eastus2.azure.neon.tech",
-    database: "neondb",
-    password: "npg_dY4oiQk2yDAn",
-    port: 5432, // default PostgreSQL port
+    user: DB_USER,
+    host: DB_HOST,
+    database: DB_NAME,
+    password: DB_PASSWORD,
+    port: DB_PORT,// default PostgreSQL port
     ssl: {
         rejectUnauthorized: true,
         sslmode: 'require',
