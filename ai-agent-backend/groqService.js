@@ -151,12 +151,12 @@ When creating queries:
 `;
 
 export const queryGroq = async (userQuery) => {
-  console.log("\n--- Starting new query ---");
-  console.log("Received user query:", userQuery);
+  // console.log("\n--- Starting new query ---");
+  // console.log("Received user query:", userQuery);
 
   try {
     // Get the current database schema
-    console.log("Fetching database schema...");
+    // console.log("Fetching database schema...");
     const schema = await getDatabaseSchema();
     const schemaPrompt = generateSchemaPrompt(schema);
 
@@ -178,7 +178,7 @@ export const queryGroq = async (userQuery) => {
     // Combine base prompt with schema information
     const fullSystemPrompt = baseSystemPrompt + "\n" + schemaPrompt + "\n" + chartSupportPrompt;
     
-    console.log("Preparing to call Groq API with schema-aware prompt");
+    // console.log("Preparing to call Groq API with schema-aware prompt");
     
     const chatCompletion = await groq.chat.completions.create({
       messages: [
@@ -200,7 +200,7 @@ export const queryGroq = async (userQuery) => {
     });
 
     let responseContent = chatCompletion.choices[0]?.message?.content;
-    console.log("Raw API response content:", responseContent);
+    // console.log("Raw API response content:", responseContent);
 
     // Clean up the response content
     if (responseContent) {
@@ -210,7 +210,7 @@ export const queryGroq = async (userQuery) => {
     let response;
     try {
       response = JSON.parse(responseContent);
-      console.log("Successfully parsed JSON:", JSON.stringify(response, null, 2));
+      // console.log("Successfully parsed JSON:", JSON.stringify(response, null, 2));
     } catch (parseError) {
       console.error("JSON Parse Error:", parseError);
       throw new Error("Failed to parse AI response into valid JSON");
@@ -220,7 +220,7 @@ export const queryGroq = async (userQuery) => {
       throw new Error("No SQL query generated");
     }
 
-    console.log("\nPreparing to execute SQL query:", response.sqlQuery);
+    // console.log("\nPreparing to execute SQL query:", response.sqlQuery);
 
     const result = await executeQuery(response.sqlQuery);
     console.log("Query execution completed. Row count:", result.rowCount);

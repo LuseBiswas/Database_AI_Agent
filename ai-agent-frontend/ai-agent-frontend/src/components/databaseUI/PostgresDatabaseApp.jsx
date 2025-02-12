@@ -17,8 +17,11 @@ import {
   CardTitle,
 } from "../ui/card";
 import { Label } from "../ui/label";
-import { checkHealth, connectToDatabase } from "../../api/queryAPI";
+// import { checkHealth, connectToDatabase } from "../../api/queryAPI";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+import { createAPI } from "../../api/queryAPI";
+import { useAuth } from "@clerk/clerk-react";
 
 const PostgresDatabaseApp = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -33,16 +36,49 @@ const PostgresDatabaseApp = () => {
   const [error, setError] = useState("");
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const { user } = useUser();
+  const { getToken } = useAuth();
+  const api = createAPI(getToken);
 
   useEffect(() => {
     document.title = "Connection";
   }, []);
 
+  // // Add this function
+  // const initializeUser = async () => {
+  //   try {
+  //     const response = await fetch('http://localhost:3000/api/auth/user', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Authorization': `Bearer ${await user.getToken()}`,
+  //         'Content-Type': 'application/json'
+  //       }
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error('Failed to initialize user');
+  //     }
+
+  //     const data = await response.json();
+  //     console.log('User initialized:', data);
+  //   } catch (error) {
+  //     console.error('Error initializing user:', error);
+  //   }
+  // };
+
+  // // Call initializeUser when component mounts
+  // useEffect(() => {
+  //   if (user) {
+  //     initializeUser();
+  //   }
+  // }, [user]);
+
+
   // Check initial connection status
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        const health = await checkHealth();
+        const health = await api.checkHealth();
         setIsConnected(health.databaseConnected);
       } catch (err) {
         console.error("Health check failed:", err);
@@ -58,7 +94,7 @@ const PostgresDatabaseApp = () => {
     setError("");
 
     try {
-      const result = await connectToDatabase(formData);
+      const result = await api.connectToDatabase(formData);
 
       if (result.success) {
         setIsConnected(true);

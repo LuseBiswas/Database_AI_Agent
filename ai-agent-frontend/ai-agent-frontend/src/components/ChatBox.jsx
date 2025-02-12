@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { queryBackend, disconnectDatabase } from "../api/queryAPI";
+// import { queryBackend, disconnectDatabase } from "../api/queryAPI";
+import { createAPI } from "../api/queryAPI";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
@@ -18,6 +19,7 @@ import {
 import { Alert, AlertDescription } from "./ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
 import ChartRenderer from "./ChartRenderer";
+import { useAuth } from "@clerk/clerk-react";
 
 const QUICK_QUERY_TAGS = [
   { label: "Create Bar Graph", query: "Create a bar graph showing",icon: <BarChart className="h-4 w-4 text-blue-500" /> },
@@ -99,6 +101,8 @@ const ChatBox = () => {
   const [error, setError] = useState("");
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const { getToken } = useAuth();
+  const api = createAPI(getToken);
 
   useEffect(() => {
     document.title = "Chat";
@@ -113,7 +117,7 @@ const ChatBox = () => {
     setResponse(null);
 
     try {
-      const result = await queryBackend(userQuery);
+      const result = await api.queryBackend(userQuery);
       setResponse(result);
     } catch (error) {
       setError(error.message || "Failed to fetch response.");
@@ -128,7 +132,7 @@ const ChatBox = () => {
 
   const handleDisconnect = async () => {
     try {
-      await disconnectDatabase();
+      await api.disconnectDatabase();
       navigate("/");
     } catch (error) {
       setError("Failed to disconnect from database.");
