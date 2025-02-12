@@ -289,7 +289,7 @@ const Homepage = () => {
                   </SignUpButton>
                 </motion.div>
                 <p className="mt-4 text-sm text-muted-foreground">
-                  No credit card required · Cancel anytime
+                  Account Creation is Free, So don't worry
                 </p>
               </div>
             </motion.div>
