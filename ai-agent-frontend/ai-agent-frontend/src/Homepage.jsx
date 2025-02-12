@@ -20,9 +20,20 @@ import {
   BarChart,
   Layers,
   AreaChart,
+  FolderKanban,
+  FileSpreadsheet,
+  MessagesSquare,
+  History,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { SignIn, SignUp, SignUpButton, useAuth, UserButton, useUser } from "@clerk/clerk-react";
+import {
+  SignIn,
+  SignUp,
+  SignUpButton,
+  useAuth,
+  UserButton,
+  useUser,
+} from "@clerk/clerk-react";
 import { createAPI } from "./api/queryAPI";
 
 const Homepage = () => {
@@ -37,16 +48,16 @@ const Homepage = () => {
   useEffect(() => {
     const registerNewUser = async () => {
       if (isSignedIn && user) {
-        console.log("I'm enetering here...")
+        console.log("I'm enetering here...");
         try {
-          const userId = user.id
-          const userEmail = user.emailAddresses[0].emailAddress
+          const userId = user.id;
+          const userEmail = user.emailAddresses[0].emailAddress;
           // Register user in your backend
-          await api.registerUser(userId,userEmail);
+          await api.registerUser(userId, userEmail);
           // After successful registration, navigate to postgres page
-          navigate('/');
+          navigate("/");
         } catch (error) {
-          console.error('Error registering user:', error);
+          console.error("Error registering user:", error);
           // Handle registration error (you might want to show an error message)
         }
       }
@@ -110,9 +121,15 @@ const Homepage = () => {
               SQL knowledge required.
             </p>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              
               {!isSignedIn ? (
-                <SignUpButton />
+                <Button
+                  size="lg"
+                  className="group relative"
+                  onClick={scrollToDatabase}
+                >
+                  Explore Features
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </Button>
               ) : (
                 <Button
                   size="lg"
@@ -176,6 +193,110 @@ const Homepage = () => {
         </div>
       </div>
 
+      {!isSignedIn && (
+        <div className="py-24 bg-primary/5">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              className="text-center mb-16"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-3xl font-bold mb-4">
+                Why Create an Account?
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Unlock powerful features to maximize your database interaction
+                experience
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="grid md:grid-cols-4 gap-8"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              {[
+                {
+                  icon: (
+                    <MessagesSquare className="h-12 w-12 text-primary mb-4" />
+                  ),
+                  title: "Chat History",
+                  description:
+                    "Access and continue your previous database conversations",
+                },
+                {
+                  icon: (
+                    <FolderKanban className="h-12 w-12 text-primary mb-4" />
+                  ),
+                  title: "Query Organization",
+                  description:
+                    "Create folders and organize your queries by projects",
+                },
+                {
+                  icon: (
+                    <FileSpreadsheet className="h-12 w-12 text-primary mb-4" />
+                  ),
+                  title: "CSV Export",
+                  description:
+                    "Export your query results directly to CSV files",
+                },
+                {
+                  icon: <History className="h-12 w-12 text-primary mb-4" />,
+                  title: "Save Favorites",
+                  description:
+                    "Bookmark your frequently used queries for quick access",
+                },
+              ].map((benefit, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className="h-full">
+                    <CardHeader>
+                      {benefit.icon}
+                      <CardTitle>{benefit.title}</CardTitle>
+                      <CardDescription>{benefit.description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.div
+              className="text-center mt-12"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+            >
+              <div className="inline-block">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  <SignUpButton>
+                    <Button
+                      size="lg"
+                      className="group bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 rounded-lg flex items-center gap-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <span>Create Free Account</span>
+                      <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Button>
+                  </SignUpButton>
+                </motion.div>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  No credit card required · Cancel anytime
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      )}
+
       {/* Database Options */}
       <div className="py-24" ref={databaseSectionRef}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -230,14 +351,10 @@ const Homepage = () => {
                     <Button
                       className="w-full group"
                       onClick={() => {
-                          navigate("/postgres");
-                        
-                        }
-                      }
+                        navigate("/postgres");
+                      }}
                     >
-                      
-                        Connect to PostgreSQL
-                        
+                      Connect to PostgreSQL
                       <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                     </Button>
                   </div>
