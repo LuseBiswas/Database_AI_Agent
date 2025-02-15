@@ -9,7 +9,9 @@ const groq = new Groq({
   api_key: process.env.GROQ_API_KEY,
 });
 
-let pool = null;
+// Initialize pool as exported variable instead of let
+export let pool = new Pool(); // Initially empty pool that will be configured
+
 
 // New function to initialize database connection
 export const initializeDatabase = async (connectionConfig) => {

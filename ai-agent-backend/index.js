@@ -10,6 +10,7 @@ import {
 } from './authService.js';
 import 'dotenv/config';
 import { parseAuthToken } from "./authMiddleware.js";
+import { simpleQueryGroq } from "./simpleGroqService.js";
 
 const app = express();
 app.use(cors());
@@ -25,6 +26,8 @@ initializeUserTables();
 const requireAuth = ClerkExpressRequireAuth({
   clockSkewInSeconds: 300,
 });
+
+
 
 // User registration endpoint
 app.post("/api/auth/user", requireAuth, async (req, res) => {
@@ -98,9 +101,9 @@ app.post("/api/query", async (req, res) => {
   }
 
   const { userQuery } = req.body;
-  console.log("User Original Query:-",userQuery)
+  // console.log("User Original Query:-",userQuery)
   const userId = req.auth?.userId; // Optional: only save if user is authenticated
-  console.log("User ID is:-",userId)
+  // console.log("User ID is:-",userId)
 
   if (!userQuery) {
     return res.status(400).json({ 
@@ -110,17 +113,32 @@ app.post("/api/query", async (req, res) => {
   }
 
   try {
-    const result = await queryGroq(userQuery);
-    console.log("JSON we are getting:-",result)
-    // Save chat history if user is authenticated
+    let result;
+    
     if (userId) {
+      // Authenticated user - full features with database connection check
+      if (!isConnected) {
+        return res.status(400).json({
+          status: "error",
+          error: "Database not connected. Please connect to a database first."
+        });
+      }
+      // console.log("Login Query is Initiated:-")
+      result = await queryGroq(userQuery);
+      // console.log(result)
       await saveChatHistory(
         userId, 
         userQuery, 
         result,
-        req.body.connectionConfig || {} // Save the database connection config
+        req.body.connectionConfig || {}
       );
+    } else {
+      // Unauthenticated user - simple version without database features
+      // console.log("Simple Query is Initiated:-")
+      result = await simpleQueryGroq(userQuery);
+      // console.log(result)
     }
+
     res.json({
       status: "success",
       data: result
@@ -134,7 +152,6 @@ app.post("/api/query", async (req, res) => {
     });
   }
 });
-
 // Get chat history endpoint
 app.get("/api/chat-history", requireAuth, async (req, res) => {
   const userId = req.auth.userId;
