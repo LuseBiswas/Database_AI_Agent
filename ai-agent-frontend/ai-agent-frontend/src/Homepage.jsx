@@ -223,9 +223,15 @@ const Homepage = () => {
                   icon: (
                     <MessagesSquare className="h-12 w-12 text-primary mb-4" />
                   ),
-                  title: "Chat History",
+                  title: "Follow Up",
                   description:
                     "Access and continue your previous database conversations",
+                },
+                {
+                  icon: <BarChart className="h-12 w-12 text-primary mb-4" />,
+                  title: "Data Analysis",
+                  description:
+                    "Analyze your data with powerful visualization tools",
                 },
                 {
                   icon: (
@@ -234,6 +240,7 @@ const Homepage = () => {
                   title: "Query Organization",
                   description:
                     "Create folders and organize your queries by projects",
+                  comingSoon: true,
                 },
                 {
                   icon: (
@@ -242,12 +249,7 @@ const Homepage = () => {
                   title: "CSV Export",
                   description:
                     "Export your query results directly to CSV files",
-                },
-                {
-                  icon: <History className="h-12 w-12 text-primary mb-4" />,
-                  title: "Save Favorites",
-                  description:
-                    "Bookmark your frequently used queries for quick access",
+                  comingSoon: true,
                 },
               ].map((benefit, index) => (
                 <motion.div
@@ -255,7 +257,12 @@ const Homepage = () => {
                   whileHover={{ y: -8 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="h-full">
+                  <Card className="h-full relative">
+                    {benefit.comingSoon && ( // Add this condition
+                      <div className="absolute top-2 right-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
+                        Coming Soon
+                      </div>
+                    )}
                     <CardHeader>
                       {benefit.icon}
                       <CardTitle>{benefit.title}</CardTitle>

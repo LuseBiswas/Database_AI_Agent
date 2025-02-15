@@ -62,7 +62,23 @@ export const createAPI = (getToken) => {
       });
       
       if (response.data && response.data.data) {
-        return response.data.data;
+         // Handle both simple and full-featured responses
+         const result = response.data.data;
+        
+        //  // If it's a simple response (from simpleGroqService)
+        //  if (result.isSimpleVersion) {
+        //    return {
+        //      explanation: result.explanation,
+        //      sqlExample: result.sqlExample,
+        //      type: result.type,
+        //      isSimpleVersion: true
+        //    };
+        //  }
+         
+         // If it's a full-featured response (from original groqService)
+         return {
+           ...result,
+         };
       }
       
       throw new Error("Invalid response format from server");

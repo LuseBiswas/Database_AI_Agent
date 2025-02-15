@@ -7,7 +7,18 @@ import { Input } from "./ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { useTheme } from "./ThemeProvider";
-import { Sun, Moon, LogOut, Send, Database,BarChart, ListOrdered, Calculator, TrendingUp,Boxes } from "lucide-react";
+import {
+  Sun,
+  Moon,
+  LogOut,
+  Send,
+  Database,
+  BarChart,
+  ListOrdered,
+  Calculator,
+  TrendingUp,
+  Boxes,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -20,13 +31,34 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
 import ChartRenderer from "./ChartRenderer";
 import { useAuth } from "@clerk/clerk-react";
+import UpgradeSuggestion from "./UpgradeSuggestion";
 
 const QUICK_QUERY_TAGS = [
-  { label: "Create Bar Graph", query: "Create a bar graph showing",icon: <BarChart className="h-4 w-4 text-blue-500" /> },
-  { label: "Top 10 Records", query: "Show top 10 records from",icon: <ListOrdered className="h-4 w-4 text-green-500" /> },
-  { label: "Average Calculation", query: "Calculate average of", icon: <Calculator className="h-4 w-4 text-purple-500" /> },
-  { label: "Group By Analysis", query: "Group by and count",icon: <Boxes className="h-4 w-4 text-orange-500" /> },
-  { label: "Recent Trends", query: "Show recent trends in", icon: <TrendingUp className="h-4 w-4 text-red-500" /> }
+  {
+    label: "Create Bar Graph",
+    query: "Create a bar graph showing",
+    icon: <BarChart className="h-4 w-4 text-blue-500" />,
+  },
+  {
+    label: "Top 10 Records",
+    query: "Show top 10 records from",
+    icon: <ListOrdered className="h-4 w-4 text-green-500" />,
+  },
+  {
+    label: "Average Calculation",
+    query: "Calculate average of",
+    icon: <Calculator className="h-4 w-4 text-purple-500" />,
+  },
+  {
+    label: "Group By Analysis",
+    query: "Group by and count",
+    icon: <Boxes className="h-4 w-4 text-orange-500" />,
+  },
+  {
+    label: "Recent Trends",
+    query: "Show recent trends in",
+    icon: <TrendingUp className="h-4 w-4 text-red-500" />,
+  },
 ];
 
 const TableSkeleton = () => (
@@ -126,6 +158,7 @@ const ChatBox = () => {
       setLoading(false);
     }
   };
+  // console.log("The Result we Got:-", response);
   const handleQuickQueryTag = (query) => {
     setUserQuery(query);
   };
@@ -212,9 +245,7 @@ const ChatBox = () => {
         >
           <div className="flex items-center gap-2">
             <Database className="h-6 w-6" />
-            <h1 className="text-2xl font-bold text-foreground">
-              AI-DA
-            </h1>
+            <h1 className="text-2xl font-bold text-foreground">AI-DA</h1>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -250,27 +281,27 @@ const ChatBox = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="Ask a question about your data..."
-                  value={userQuery}
-                  onChange={(e) => setUserQuery(e.target.value)}
-                  className="flex-1"
-                  required
-                />
-                <Button type="submit" disabled={loading}>
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      Processing...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Send className="h-4 w-4" />
-                    </span>
-                  )}
-                </Button>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Ask a question about your data..."
+                    value={userQuery}
+                    onChange={(e) => setUserQuery(e.target.value)}
+                    className="flex-1"
+                    required
+                  />
+                  <Button type="submit" disabled={loading}>
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Processing...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Send className="h-4 w-4" />
+                      </span>
+                    )}
+                  </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {QUICK_QUERY_TAGS.map((tag) => (
@@ -316,6 +347,12 @@ const ChatBox = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
+                {response.isSimpleVersion && response.alert && (
+                  <UpgradeSuggestion
+                    alert={response.alert}
+                    isSimpleVersion={response.isSimpleVersion}
+                  />
+                )}
                 {response.explanation && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
