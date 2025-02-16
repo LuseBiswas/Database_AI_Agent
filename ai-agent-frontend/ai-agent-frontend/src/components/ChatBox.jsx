@@ -18,6 +18,9 @@ import {
   Calculator,
   TrendingUp,
   Boxes,
+  FileDown,
+  FileSpreadsheet,
+  FileText,
 } from "lucide-react";
 import {
   Table,
@@ -58,6 +61,11 @@ const QUICK_QUERY_TAGS = [
     label: "Recent Trends",
     query: "Show recent trends in",
     icon: <TrendingUp className="h-4 w-4 text-red-500" />,
+  },
+  {
+    label: "Export Data",
+    query: "Export this data to excel",
+    icon: <FileDown className="h-4 w-4 text-yellow-500" />,
   },
 ];
 
@@ -126,6 +134,38 @@ const LoadingContent = () => (
   </div>
 );
 
+const ExportButtons = ({ exportResult, onDownload }) => {
+  if (!exportResult) return null;
+
+  return (
+    <div className="flex gap-2 mt-4">
+      {exportResult.downloadUrl && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onDownload(exportResult.downloadUrl)}
+          className="flex items-center gap-2"
+        >
+          {exportResult.filepath.endsWith("xlsx") ? (
+            <FileSpreadsheet className="h-4 w-4" />
+          ) : (
+            <FileText className="h-4 w-4" />
+          )}
+          Download {exportResult.filepath.endsWith("xlsx") ? "Excel" : "CSV"}
+        </Button>
+      )}
+    </div>
+  );
+};
+
+const handleDownload = async (downloadUrl) => {
+  try {
+    await api.downloadExport(downloadUrl);
+  } catch (error) {
+    setError("Failed to download file. Please try again.");
+  }
+};
+
 const ChatBox = () => {
   const [userQuery, setUserQuery] = useState("");
   const [response, setResponse] = useState(null);
@@ -174,6 +214,57 @@ const ChatBox = () => {
   };
 
   const renderTable = (data) => {
+    const handleExport = async (type) => {
+      try {
+        if (!data || !data.rows || data.rows.length === 0) return;
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        let content, filename, mimeType;
+
+        if (type === "csv") {
+          // Convert data to CSV
+          const headers = Object.keys(data.rows[0]);
+          const csvContent = [
+            headers.join(","), // Header row
+            ...data.rows.map((row) =>
+              headers
+                .map(
+                  (header) =>
+                    // Handle values that might contain commas
+                    `"${(row[header]?.toString() || "").replace(/"/g, '""')}"`
+                )
+                .join(",")
+            ),
+          ].join("\n");
+
+          content = csvContent;
+          filename = `export_${timestamp}.csv`;
+          mimeType = "text/csv";
+        } else {
+          // Handle Excel export using existing backend
+          const result = await api.queryBackend(`Export this data to excel`);
+          if (result.exportResult?.downloadUrl) {
+            await api.downloadExport(result.exportResult.downloadUrl);
+            return;
+          }
+          throw new Error("Excel export failed");
+        }
+
+        // Create and trigger download for CSV
+        const blob = new Blob([content], { type: mimeType });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        setError("Failed to export data: " + error.message);
+      }
+    };
+
     if (!data || !data.rows || data.rows.length === 0) {
       return (
         <motion.div
@@ -197,39 +288,54 @@ const ChatBox = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((column, index) => (
-                <motion.td
-                  key={column}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="py-2 px-4 font-medium"
-                >
-                  {column}
-                </motion.td>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.rows.map((row, rowIndex) => (
-              <motion.tr
-                key={rowIndex}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: rowIndex * 0.03 }}
-              >
-                {columns.map((column) => (
-                  <TableCell key={column}>
-                    {row[column]?.toString() || ""}
-                  </TableCell>
+        <div className="flex justify-end gap-2 mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExport("csv")}
+            className="flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Export to CSV
+          </Button>
+          
+        </div>
+
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {columns.map((column, index) => (
+                  <motion.td
+                    key={column}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="py-2 px-4 font-medium"
+                  >
+                    {column}
+                  </motion.td>
                 ))}
-              </motion.tr>
-            ))}
-          </TableBody>
-        </Table>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.rows.map((row, rowIndex) => (
+                <motion.tr
+                  key={rowIndex}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: rowIndex * 0.03 }}
+                >
+                  {columns.map((column) => (
+                    <TableCell key={column}>
+                      {row[column]?.toString() || ""}
+                    </TableCell>
+                  ))}
+                </motion.tr>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </motion.div>
     );
   };
