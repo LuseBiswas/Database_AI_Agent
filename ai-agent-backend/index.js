@@ -11,11 +11,19 @@ import {
 import 'dotenv/config';
 import { parseAuthToken } from "./authMiddleware.js";
 import { simpleQueryGroq } from "./simpleGroqService.js";
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(parseAuthToken);
+
+// Create exports directory for file downloads
+// const exportDir = path.join(__dirname, 'exports');
+// app.use('/exports', express.static(exportDir));
 
 // Database connection state
 let isConnected = false;
@@ -101,7 +109,7 @@ app.post("/api/query", async (req, res) => {
   }
 
   const { userQuery } = req.body;
-  // console.log("User Original Query:-",userQuery)
+  console.log("User Original Query:-",userQuery)
   const userId = req.auth?.userId; // Optional: only save if user is authenticated
   // console.log("User ID is:-",userId)
 
@@ -125,7 +133,12 @@ app.post("/api/query", async (req, res) => {
       }
       // console.log("Login Query is Initiated:-")
       result = await queryGroq(userQuery);
-      // console.log(result)
+      // If export was successful, modify the response to include download URL
+      // if (result.exportResult && result.exportResult.success) {
+      //   const filename = path.basename(result.exportResult.filepath);
+      //   result.exportResult.downloadUrl = `/exports/${filename}`;
+      // }
+      console.log(result)
       await saveChatHistory(
         userId, 
         userQuery, 
@@ -152,6 +165,52 @@ app.post("/api/query", async (req, res) => {
     });
   }
 });
+
+// // New endpoint to download exported files
+// app.get("/api/download/:filename", async (req, res) => {
+//   const { filename } = req.params;
+//   const filepath = path.join(__dirname, 'exports', filename);
+  
+//   try {
+//     res.download(filepath, filename, (err) => {
+//       if (err) {
+//         console.error("Download error:", err);
+//         res.status(500).json({
+//           status: "error",
+//           error: "Error downloading file"
+//         });
+//       }
+//     });
+//   } catch (error) {
+//     console.error("Download error:", error);
+//     res.status(500).json({
+//       status: "error",
+//       error: "Error accessing file"
+//     });
+//   }
+// });
+
+// // New endpoint to list available exports
+// app.get("/api/exports", requireAuth, async (req, res) => {
+//   try {
+//     const files = await fs.readdir(exportDir);
+//     res.json({
+//       status: "success",
+//       data: files.map(filename => ({
+//         filename,
+//         downloadUrl: `/exports/${filename}`
+//       }))
+//     });
+//   } catch (error) {
+//     console.error("Error listing exports:", error);
+//     res.status(500).json({
+//       status: "error",
+//       error: "Error listing export files"
+//     });
+//   }
+// });
+
+
 // Get chat history endpoint
 app.get("/api/chat-history", requireAuth, async (req, res) => {
   const userId = req.auth.userId;

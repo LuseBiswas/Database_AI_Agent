@@ -1,6 +1,9 @@
 import Groq from "groq-sdk";
 import dotenv from "dotenv";
 import pkg from 'pg';
+// import { Parser } from 'json2csv';
+// import ExcelJS from 'exceljs';
+// import fs from 'fs/promises';
 const { Pool } = pkg;
 
 dotenv.config();
@@ -126,7 +129,27 @@ Return ONLY a JSON object in this format, with no markdown formatting or code bl
   "sqlQuery": "The SQL query to execute",
   "queryType": "SELECT|INSERT|UPDATE|DELETE"
 }
-  CHART GENERATION SPECIFIC RULES:
+STRICT VISUALIZATION RULES:
+1. The chartType field should ONLY be included when the user EXPLICITLY requests visualization using phrases like:
+   - "show as chart"
+   - "display as graph"
+   - "create a visualization"
+   - "make a pie chart"
+   - "plot this data"
+   - "show line graph"
+   
+2. DO NOT include chartType field if the user query does not contain an explicit visualization request
+3. DO NOT assume visualization is needed just because data could be visualized
+4. DO NOT add chartType for queries that only ask for data without mentioning charts/graphs/visualization
+
+Example queries that should NOT include chartType:
+- "show me employee counts by department"
+- "get total sales by region"
+- "count customers by country"
+- "give me the number of orders per month"
+
+When chartType IS explicitly requested:
+- Valid types: 'pie', 'bar', 'line'
 - For PIE CHARTS: 
   1. Must have exactly two columns
   2. First column MUST be categorical (labels)
@@ -152,6 +175,85 @@ When creating queries:
 
 `;
 
+// export const exportToCSV = async (data, filename) => {
+//   try {
+//     if (!data || !data.rows || data.rows.length === 0) {
+//       throw new Error("No data to export");
+//     }
+
+//     const parser = new Parser({
+//       fields: Object.keys(data.rows[0])
+//     });
+    
+//     const csv = parser.parse(data.rows);
+//     const filepath = `./exports/${filename}.csv`;
+    
+//     // Ensure exports directory exists
+//     await fs.mkdir('./exports', { recursive: true });
+//     await fs.writeFile(filepath, csv);
+    
+//     return {
+//       success: true,
+//       filepath,
+//       message: `CSV exported successfully to ${filepath}`
+//     };
+//   } catch (error) {
+//     console.error("CSV Export Error:", error);
+//     return {
+//       success: false,
+//       message: error.message
+//     };
+//   }
+// };
+
+// export const exportToExcel = async (data, filename) => {
+//   try {
+//     if (!data || !data.rows || data.rows.length === 0) {
+//       throw new Error("No data to export");
+//     }
+
+//     const workbook = new ExcelJS.Workbook();
+//     const worksheet = workbook.addWorksheet('Data');
+    
+//     // Add headers
+//     const headers = Object.keys(data.rows[0]);
+//     worksheet.addRow(headers);
+    
+//     // Add data rows
+//     data.rows.forEach(row => {
+//       worksheet.addRow(Object.values(row));
+//     });
+    
+//     // Auto-fit columns
+//     worksheet.columns.forEach(column => {
+//       column.width = Math.max(
+//         headers.reduce((w, h) => Math.max(w, h.length), 10),
+//         ...data.rows.map(row => 
+//           String(row[column.header] || '').length
+//         )
+//       );
+//     });
+
+//     const filepath = `./exports/${filename}.xlsx`;
+    
+//     // Ensure exports directory exists
+//     await fs.mkdir('./exports', { recursive: true });
+//     await workbook.xlsx.writeFile(filepath);
+    
+//     return {
+//       success: true,
+//       filepath,
+//       message: `Excel file exported successfully to ${filepath}`
+//     };
+//   } catch (error) {
+//     console.error("Excel Export Error:", error);
+//     return {
+//       success: false,
+//       message: error.message
+//     };
+//   }
+// };
+
 export const queryGroq = async (userQuery) => {
   // console.log("\n--- Starting new query ---");
   // console.log("Received user query:", userQuery);
@@ -162,23 +264,24 @@ export const queryGroq = async (userQuery) => {
     const schema = await getDatabaseSchema();
     const schemaPrompt = generateSchemaPrompt(schema);
 
-    const chartSupportPrompt = `
-    CHART GENERATION INSTRUCTIONS:
-    - If query suggests visualization, include 'chartType'
-    - Supported chart types: 'pie', 'bar', 'line'
-    - For pie charts: Select categorical column for labels, numerical for values
-    - For bar/line charts: Choose appropriate X and Y axes
-    - If unclear how to chart, omit 'chartType'
+//     const chartSupportPrompt = `
+//     CHART GENERATION INSTRUCTIONS:
+//     - If query suggests visualization, include 'chartType'
+//     - Supported chart types: 'pie', 'bar', 'line'
+//     - For pie charts: Select categorical column for labels, numerical for values
+//     - For bar/line charts: Choose appropriate X and Y axes
+//     - If unclear how to chart, the don't include 'chartType'
     
-    Examples of chart-triggering phrases:
-    - "show as pie chart"
-    - "graph of..."
-    - "visualize..."
-    - "breakdown by..."
-`;
+//     Examples of chart-triggering phrases:
+//     - "show as pie chart"
+//     - "graph of..."
+//     - "visualize..."
+//     - "breakdown by..."
+// `;
     
     // Combine base prompt with schema information
-    const fullSystemPrompt = baseSystemPrompt + "\n" + schemaPrompt + "\n" + chartSupportPrompt;
+    //const fullSystemPrompt = baseSystemPrompt + "\n" + schemaPrompt + "\n" + chartSupportPrompt;
+    const fullSystemPrompt = baseSystemPrompt + "\n" + schemaPrompt + "\n";
     
     // console.log("Preparing to call Groq API with schema-aware prompt");
     
@@ -225,13 +328,13 @@ export const queryGroq = async (userQuery) => {
     // console.log("\nPreparing to execute SQL query:", response.sqlQuery);
 
     const result = await executeQuery(response.sqlQuery);
-    console.log("Query execution completed. Row count:", result.rowCount);
+    // console.log("Query execution completed. Row count:", result.rowCount);
 
     return {
       explanation: response.explanation,
       sqlQuery: response.sqlQuery,
       queryType: response.queryType,
-      chartType: response.chartType || null,
+      ...(response.chartType && { chartType: response.chartType }),
       result: result
     };
 

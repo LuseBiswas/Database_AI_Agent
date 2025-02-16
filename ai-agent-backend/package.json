@@ -14,8 +14,10 @@
     "@clerk/clerk-sdk-node": "^5.1.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "groq-sdk": "^0.15.0",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.2",
     "pg-pool": "^3.7.0"
