@@ -64,12 +64,13 @@ export const createAPI = (getToken) => {
       if (response.data && response.data.data) {
          // Handle both simple and full-featured responses
          const result = response.data.data;
+         console.log("Result from Backend:-",result)
 
-         // Handle export result if present
-         if (result.exportResult && result.exportResult.success) {
-          // Add full download URL to the export result
-          result.exportResult.fullDownloadUrl = `${API_BASE_URL}${result.exportResult.downloadUrl}`;
-        }
+        //  // Handle export result if present
+        //  if (result.exportResult && result.exportResult.success) {
+        //   // Add full download URL to the export result
+        //   result.exportResult.fullDownloadUrl = `${API_BASE_URL}${result.exportResult.downloadUrl}`;
+        // }
         
         //  // If it's a simple response (from simpleGroqService)
         //  if (result.isSimpleVersion) {

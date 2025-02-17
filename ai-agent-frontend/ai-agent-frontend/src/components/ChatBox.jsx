@@ -8,28 +8,17 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { useTheme } from "./ThemeProvider";
 import {
-  Sun,
-  Moon,
-  LogOut,
-  Send,
-  Database,
-  BarChart,
-  ListOrdered,
-  Calculator,
-  TrendingUp,
-  Boxes,
-  FileDown,
-  FileSpreadsheet,
-  FileText,
-} from "lucide-react";
+  Sun,Moon,LogOut,Send,Database,BarChart,ListOrdered,Calculator,TrendingUp,Boxes,FileDown,FileSpreadsheet,FileText,} from "lucide-react";
+import {Table,TableBody,TableCell,TableHead,TableHeader,TableRow,} from "./ui/table";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./ui/table";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 import { Alert, AlertDescription } from "./ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
 import ChartRenderer from "./ChartRenderer";
@@ -68,6 +57,57 @@ const QUICK_QUERY_TAGS = [
     icon: <FileDown className="h-4 w-4 text-yellow-500" />,
   },
 ];
+
+// Add this component above the ChatBox component
+const ExportButton = ({ data, isSimpleVersion, onExport }) => {
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const navigate = useNavigate();
+
+  const handleExportClick = () => {
+    if (isSimpleVersion) {
+      setShowUpgradeDialog(true);
+    } else {
+      onExport("csv");
+    }
+  };
+
+  const handleUpgrade = () => {
+    navigate("/");
+  };
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleExportClick}
+        className="flex items-center gap-2"
+      >
+        <FileText className="h-4 w-4" />
+        Export to CSV
+      </Button>
+
+      <AlertDialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Upgrade Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sign up to unlock advanced features including data export capabilities.
+              Upgrade now to access all premium features and enhance your data analysis experience.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={handleUpgrade}>Upgrade Now</AlertDialogAction>
+            <Button variant="outline" onClick={() => setShowUpgradeDialog(false)}>
+              Cancel
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
 
 const TableSkeleton = () => (
   <div className="rounded-md border">
@@ -134,42 +174,43 @@ const LoadingContent = () => (
   </div>
 );
 
-const ExportButtons = ({ exportResult, onDownload }) => {
-  if (!exportResult) return null;
+// const ExportButtons = ({ exportResult, onDownload }) => {
+//   if (!exportResult) return null;
 
-  return (
-    <div className="flex gap-2 mt-4">
-      {exportResult.downloadUrl && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onDownload(exportResult.downloadUrl)}
-          className="flex items-center gap-2"
-        >
-          {exportResult.filepath.endsWith("xlsx") ? (
-            <FileSpreadsheet className="h-4 w-4" />
-          ) : (
-            <FileText className="h-4 w-4" />
-          )}
-          Download {exportResult.filepath.endsWith("xlsx") ? "Excel" : "CSV"}
-        </Button>
-      )}
-    </div>
-  );
-};
+//   return (
+//     <div className="flex gap-2 mt-4">
+//       {exportResult.downloadUrl && (
+//         <Button
+//           variant="outline"
+//           size="sm"
+//           onClick={() => onDownload(exportResult.downloadUrl)}
+//           className="flex items-center gap-2"
+//         >
+//           {exportResult.filepath.endsWith("xlsx") ? (
+//             <FileSpreadsheet className="h-4 w-4" />
+//           ) : (
+//             <FileText className="h-4 w-4" />
+//           )}
+//           Download {exportResult.filepath.endsWith("xlsx") ? "Excel" : "CSV"}
+//         </Button>
+//       )}
+//     </div>
+//   );
+// };
 
-const handleDownload = async (downloadUrl) => {
-  try {
-    await api.downloadExport(downloadUrl);
-  } catch (error) {
-    setError("Failed to download file. Please try again.");
-  }
-};
+// const handleDownload = async (downloadUrl) => {
+//   try {
+//     await api.downloadExport(downloadUrl);
+//   } catch (error) {
+//     setError("Failed to download file. Please try again.");
+//   }
+// };
 
 const ChatBox = () => {
   const [userQuery, setUserQuery] = useState("");
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showExportAlert, setShowExportAlert] = useState(false);
   const [error, setError] = useState("");
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -198,7 +239,7 @@ const ChatBox = () => {
       setLoading(false);
     }
   };
-  // console.log("The Result we Got:-", response);
+  console.log("The Result we Got in forntend:-", response);
   const handleQuickQueryTag = (query) => {
     setUserQuery(query);
   };
@@ -217,26 +258,31 @@ const ChatBox = () => {
     const handleExport = async (type) => {
       try {
         if (!data || !data.rows || data.rows.length === 0) return;
-
+  
+        // Check if response.isSimpleVersion is true
+        if (response.isSimpleVersion) {  // Access isSimpleVersion from response
+          setError("Please upgrade to use the export feature");
+          return;
+        }
+  
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
         let content, filename, mimeType;
-
+  
         if (type === "csv") {
           // Convert data to CSV
           const headers = Object.keys(data.rows[0]);
           const csvContent = [
-            headers.join(","), // Header row
+            headers.join(","),
             ...data.rows.map((row) =>
               headers
                 .map(
                   (header) =>
-                    // Handle values that might contain commas
                     `"${(row[header]?.toString() || "").replace(/"/g, '""')}"`
                 )
                 .join(",")
             ),
           ].join("\n");
-
+  
           content = csvContent;
           filename = `export_${timestamp}.csv`;
           mimeType = "text/csv";
@@ -249,8 +295,8 @@ const ChatBox = () => {
           }
           throw new Error("Excel export failed");
         }
-
-        // Create and trigger download for CSV
+  
+        // Create and trigger download
         const blob = new Blob([content], { type: mimeType });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -289,15 +335,28 @@ const ChatBox = () => {
         transition={{ duration: 0.3 }}
       >
         <div className="flex justify-end gap-2 mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleExport("csv")}
-            className="flex items-center gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            Export to CSV
-          </Button>
+        <div className="flex justify-end gap-2 mb-4">
+        {/* <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (response.isSimpleVersion) {
+              setError("Please upgrade to use the export feature");
+              return;
+            }
+            handleExport("csv");
+          }}
+          className="flex items-center gap-2"
+        >
+          <FileText className="h-4 w-4" />
+          Export to CSV
+        </Button> */}
+        <ExportButton 
+          data={data} 
+          isSimpleVersion={response.isSimpleVersion} 
+          onExport={handleExport} 
+        />
+      </div>
           
         </div>
 
@@ -508,7 +567,7 @@ const ChatBox = () => {
                         <CardTitle>Results</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        {renderTable(response.result)}
+                        {renderTable(response.result, response.isSimpleVersion)}
                         <motion.p
                           className="mt-4 text-sm text-muted-foreground"
                           initial={{ opacity: 0 }}
